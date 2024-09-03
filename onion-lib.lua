@@ -1,5 +1,3 @@
-
-
 local UserInputService = game:GetService('UserInputService')
 local TweenService = game:GetService('TweenService')
 local RunService = game:GetService('RunService')
@@ -31,12 +29,13 @@ local OnionLib = {
 local Icons = {}
 
 local Success, Response = pcall(function()
-    Icons = HttpService:JSONDecode(game:HttpGetAsync('https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json')).icons
+    Icons = HttpService:JSONDecode(game:HttpGetAsync(
+    'https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json')).icons
 end)
 
 if not Success then
     warn('\nOnion Library - Failed to load Feather Icons. Error code: ' .. Response .. '\n')
-end    
+end
 
 local function GetIcon(IconName)
     if Icons[IconName] ~= nil then
@@ -44,7 +43,7 @@ local function GetIcon(IconName)
     else
         return nil
     end
-end   
+end
 
 local Onion = Instance.new('ScreenGui')
 Onion.Name = 'Onion'
@@ -75,7 +74,6 @@ function OnionLib:IsRunning()
     else
         return Onion.Parent == game:GetService('CoreGui')
     end
-
 end
 
 local function AddConnection(Signal, Function)
@@ -121,12 +119,13 @@ local function MakeDraggable(DragPoint, Main)
         AddConnection(UserInputService.InputChanged, function(Input)
             if Input == DragInput and Dragging then
                 local Delta = Input.Position - MousePos
-                --TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
-                Main.Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
+                --TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
+                Main.Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale,
+                    FramePos.Y.Offset + Delta.Y)
             end
         end)
     end)
-end    
+end
 
 local function Create(Name, Properties, Children)
     local Object = Instance.new(Name)
@@ -165,7 +164,7 @@ local function SetChildren(Element, Children)
 end
 
 local function Round(Number, Factor)
-    local Result = math.floor(Number/Factor + (math.sign(Number) * 0.5)) * Factor
+    local Result = math.floor(Number / Factor + (math.sign(Number) * 0.5)) * Factor
     if Result < 0 then Result = Result + Factor end
     return Result
 end
@@ -173,41 +172,41 @@ end
 local function ReturnProperty(Object)
     if Object:IsA('Frame') or Object:IsA('TextButton') then
         return 'BackgroundColor3'
-    end 
+    end
     if Object:IsA('ScrollingFrame') then
         return 'ScrollBarImageColor3'
-    end 
+    end
     if Object:IsA('UIStroke') then
         return 'Color'
-    end 
+    end
     if Object:IsA('TextLabel') or Object:IsA('TextBox') then
         return 'TextColor3'
-    end   
+    end
     if Object:IsA('ImageLabel') or Object:IsA('ImageButton') then
         return 'ImageColor3'
-    end   
+    end
 end
 
 local function AddThemeObject(Object, Type)
     if not OnionLib.ThemeObjects[Type] then
         OnionLib.ThemeObjects[Type] = {}
-    end    
+    end
     table.insert(OnionLib.ThemeObjects[Type], Object)
     Object[ReturnProperty(Object)] = OnionLib.Themes[OnionLib.SelectedTheme][Type]
     return Object
-end    
+end
 
 local function SetTheme()
     for Name, Type in pairs(OnionLib.ThemeObjects) do
         for _, Object in pairs(Type) do
             Object[ReturnProperty(Object)] = OnionLib.Themes[OnionLib.SelectedTheme][Name]
-        end    
-    end    
+        end
+    end
 end
 
 local function PackColor(Color)
-    return {R = Color.R * 255, G = Color.G * 255, B = Color.B * 255}
-end    
+    return { R = Color.R * 255, G = Color.G * 255, B = Color.B * 255 }
+end
 
 local function UnpackColor(Color)
     return Color3.fromRGB(Color.R, Color.G, Color.B)
@@ -215,37 +214,40 @@ end
 
 local function LoadCfg(Config)
     local Data = HttpService:JSONDecode(Config)
-    table.foreach(Data, function(a,b)
+    table.foreach(Data, function(a, b)
         if OnionLib.Flags[a] then
-            spawn(function() 
+            spawn(function()
                 if OnionLib.Flags[a].Type == 'Colorpicker' then
                     OnionLib.Flags[a]:Set(UnpackColor(b))
                 else
                     OnionLib.Flags[a]:Set(b)
-                end    
+                end
             end)
         else
-            warn('Onion Library Config Loader - Could not find ', a ,b)
+            warn('Onion Library Config Loader - Could not find ', a, b)
         end
     end)
 end
 
 local function SaveCfg(Name)
     local Data = {}
-    for i,v in pairs(OnionLib.Flags) do
+    for i, v in pairs(OnionLib.Flags) do
         if v.Save then
             if v.Type == 'Colorpicker' then
                 Data[i] = PackColor(v.Value)
             else
                 Data[i] = v.Value
             end
-        end    
+        end
     end
     writefile(OnionLib.Folder .. '/' .. Name .. '.txt', tostring(HttpService:JSONEncode(Data)))
 end
 
-local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3}
-local BlacklistedKeys = {Enum.KeyCode.Unknown,Enum.KeyCode.W,Enum.KeyCode.A,Enum.KeyCode.S,Enum.KeyCode.D,Enum.KeyCode.Up,Enum.KeyCode.Left,Enum.KeyCode.Down,Enum.KeyCode.Right,Enum.KeyCode.Slash,Enum.KeyCode.Tab,Enum.KeyCode.Backspace,Enum.KeyCode.Escape}
+local WhitelistedMouse = { Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2, Enum.UserInputType
+    .MouseButton3 }
+local BlacklistedKeys = { Enum.KeyCode.Unknown, Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D, Enum
+    .KeyCode.Up, Enum.KeyCode.Left, Enum.KeyCode.Down, Enum.KeyCode.Right, Enum.KeyCode.Slash, Enum.KeyCode.Tab, Enum
+    .KeyCode.Backspace, Enum.KeyCode.Escape }
 
 local function CheckKey(Table, Key)
     for _, v in next, Table do
@@ -347,7 +349,7 @@ CreateElement('Image', function(ImageID)
 
     if GetIcon(ImageID) ~= nil then
         ImageNew.Image = GetIcon(ImageID)
-    end    
+    end
 
     return ImageNew
 end)
@@ -402,7 +404,7 @@ function OnionLib:MakeNotification(NotificationConfig)
         })
 
         local NotificationFrame = SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(25, 25, 25), 0, 10), {
-            Parent = NotificationParent, 
+            Parent = NotificationParent,
             Size = UDim2.new(1, 0, 0, 0),
             Position = UDim2.new(1, -55, 0, 0),
             BackgroundTransparency = 0,
@@ -432,25 +434,31 @@ function OnionLib:MakeNotification(NotificationConfig)
             })
         })
 
-        TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+        TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint),
+            { Position = UDim2.new(0, 0, 0, 0) }):Play()
 
         wait(NotificationConfig.Time - 0.88)
-        TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
-        TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.6}):Play()
+        TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), { ImageTransparency = 1 })
+            :Play()
+        TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), { BackgroundTransparency = 0.6 })
+            :Play()
         wait(0.3)
-        TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency = 0.9}):Play()
-        TweenService:Create(NotificationFrame.Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.4}):Play()
-        TweenService:Create(NotificationFrame.Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.5}):Play()
+        TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), { Transparency = 0.9 })
+            :Play()
+        TweenService:Create(NotificationFrame.Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), { TextTransparency = 0.4 })
+            :Play()
+        TweenService:Create(NotificationFrame.Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint),
+            { TextTransparency = 0.5 }):Play()
         wait(0.05)
 
-        NotificationFrame:TweenPosition(UDim2.new(1, 20, 0, 0),'In','Quint',0.8,true)
+        NotificationFrame:TweenPosition(UDim2.new(1, 20, 0, 0), 'In', 'Quint', 0.8, true)
         wait(1.35)
         NotificationFrame:Destroy()
     end)
-end    
+end
 
 function OnionLib:Init()
-    if OnionLib.SaveCfg then    
+    if OnionLib.SaveCfg then
         pcall(function()
             if isfile(OnionLib.Folder .. '/' .. game.GameId .. '.txt') then
                 LoadCfg(readfile(OnionLib.Folder .. '/' .. game.GameId .. '.txt'))
@@ -460,9 +468,9 @@ function OnionLib:Init()
                     Time = 5
                 })
             end
-        end)        
-    end    
-end    
+        end)
+    end
+end
 
 function OnionLib:MakeWindow(WindowConfig)
     local FirstTab = true
@@ -489,10 +497,11 @@ function OnionLib:MakeWindow(WindowConfig)
     if WindowConfig.SaveConfig then
         if not isfolder(WindowConfig.ConfigFolder) then
             makefolder(WindowConfig.ConfigFolder)
-        end    
+        end
     end
 
-    local TabHolder = AddThemeObject(SetChildren(SetProps(MakeElement('ScrollFrame', Color3.fromRGB(255, 255, 255), 4), {
+    local TabHolder = AddThemeObject(
+    SetChildren(SetProps(MakeElement('ScrollFrame', Color3.fromRGB(255, 255, 255), 4), {
         Size = UDim2.new(1, 0, 1, -50)
     }), {
         MakeElement('List'),
@@ -529,22 +538,23 @@ function OnionLib:MakeWindow(WindowConfig)
         Size = UDim2.new(1, 0, 0, 50)
     })
 
-    local WindowStuff = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 10), {
+    local WindowStuff = AddThemeObject(
+    SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 10), {
         Size = UDim2.new(0, 150, 1, -50),
         Position = UDim2.new(0, 0, 0, 50)
     }), {
         AddThemeObject(SetProps(MakeElement('Frame'), {
             Size = UDim2.new(1, 0, 0, 10),
             Position = UDim2.new(0, 0, 0, 0)
-        }), 'Second'), 
+        }), 'Second'),
         AddThemeObject(SetProps(MakeElement('Frame'), {
             Size = UDim2.new(0, 10, 1, 0),
             Position = UDim2.new(1, -10, 0, 0)
-        }), 'Second'), 
+        }), 'Second'),
         AddThemeObject(SetProps(MakeElement('Frame'), {
             Size = UDim2.new(0, 1, 1, 0),
             Position = UDim2.new(1, -1, 0, 0)
-        }), 'Stroke'), 
+        }), 'Stroke'),
         TabHolder,
         SetChildren(SetProps(MakeElement('TFrame'), {
             Size = UDim2.new(1, 0, 0, 50),
@@ -552,13 +562,16 @@ function OnionLib:MakeWindow(WindowConfig)
         }), {
             AddThemeObject(SetProps(MakeElement('Frame'), {
                 Size = UDim2.new(1, 0, 0, 1)
-            }), 'Stroke'), 
+            }), 'Stroke'),
             AddThemeObject(SetChildren(SetProps(MakeElement('Frame'), {
                 AnchorPoint = Vector2.new(0, 0.5),
                 Size = UDim2.new(0, 32, 0, 32),
                 Position = UDim2.new(0, 10, 0.5, 0)
             }), {
-                SetProps(MakeElement('Image', 'https://www.roblox.com/headshot-thumbnail/image?userId='.. LocalPlayer.UserId ..'&width=420&height=420&format=png'), {
+                SetProps(
+                MakeElement('Image',
+                    'https://www.roblox.com/headshot-thumbnail/image?userId=' ..
+                    LocalPlayer.UserId .. '&width=420&height=420&format=png'), {
                     Size = UDim2.new(1, 0, 1, 0)
                 }),
                 AddThemeObject(SetProps(MakeElement('Image', 'rbxassetid://4031889928'), {
@@ -574,7 +587,8 @@ function OnionLib:MakeWindow(WindowConfig)
                 AddThemeObject(MakeElement('Stroke'), 'Stroke'),
                 MakeElement('Corner', 1)
             }),
-            AddThemeObject(SetProps(MakeElement('Label', LocalPlayer.DisplayName, WindowConfig.HidePremium and 14 or 13), {
+            AddThemeObject(
+            SetProps(MakeElement('Label', LocalPlayer.DisplayName, WindowConfig.HidePremium and 14 or 13), {
                 Size = UDim2.new(1, -60, 0, 13),
                 Position = WindowConfig.HidePremium and UDim2.new(0, 50, 0, 19) or UDim2.new(0, 50, 0, 12),
                 Font = Enum.Font.GothamBold,
@@ -600,18 +614,19 @@ function OnionLib:MakeWindow(WindowConfig)
         Position = UDim2.new(0, 0, 1, -1)
     }), 'Stroke')
 
-    local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 10), {
+    local MainWindow = AddThemeObject(
+    SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 10), {
         Parent = Onion,
         Position = UDim2.new(0.5, -307, 0.5, -172),
         Size = UDim2.new(0, 615, 0, 344),
         ClipsDescendants = true
     }), {
         --SetProps(MakeElement('Image', 'rbxassetid://3523728077'), {
-        --    AnchorPoint = Vector2.new(0.5, 0.5),
-        --    Position = UDim2.new(0.5, 0, 0.5, 0),
-        --    Size = UDim2.new(1, 80, 1, 320),
-        --    ImageColor3 = Color3.fromRGB(33, 33, 33),
-        --    ImageTransparency = 0.7
+        -- AnchorPoint = Vector2.new(0.5, 0.5),
+        -- Position = UDim2.new(0.5, 0, 0.5, 0),
+        -- Size = UDim2.new(1, 80, 1, 320),
+        -- ImageColor3 = Color3.fromRGB(33, 33, 33),
+        -- ImageTransparency = 0.7
         --}),
         SetChildren(SetProps(MakeElement('TFrame'), {
             Size = UDim2.new(1, 0, 0, 50),
@@ -627,10 +642,10 @@ function OnionLib:MakeWindow(WindowConfig)
                 AddThemeObject(SetProps(MakeElement('Frame'), {
                     Size = UDim2.new(0, 1, 1, 0),
                     Position = UDim2.new(0.5, 0, 0, 0)
-                }), 'Stroke'), 
+                }), 'Stroke'),
                 CloseBtn,
                 MinimizeBtn
-            }), 'Second'), 
+            }), 'Second'),
         }),
         DragPoint,
         WindowStuff
@@ -643,7 +658,7 @@ function OnionLib:MakeWindow(WindowConfig)
             Position = UDim2.new(0, 25, 0, 15)
         })
         WindowIcon.Parent = MainWindow.TopBar
-    end    
+    end
 
     MakeDraggable(DragPoint, MainWindow)
 
@@ -666,7 +681,8 @@ function OnionLib:MakeWindow(WindowConfig)
 
     AddConnection(MinimizeBtn.MouseButton1Up, function()
         if Minimized then
-            TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 615, 0, 344)}):Play()
+            TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                { Size = UDim2.new(0, 615, 0, 344) }):Play()
             MinimizeBtn.Ico.Image = 'rbxassetid://7072719338'
             wait(.02)
             MainWindow.ClipsDescendants = false
@@ -677,11 +693,12 @@ function OnionLib:MakeWindow(WindowConfig)
             WindowTopBarLine.Visible = false
             MinimizeBtn.Ico.Image = 'rbxassetid://7072720870'
 
-            TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, WindowName.TextBounds.X + 140, 0, 50)}):Play()
+            TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                { Size = UDim2.new(0, WindowName.TextBounds.X + 140, 0, 50) }):Play()
             wait(0.1)
-            WindowStuff.Visible = false    
+            WindowStuff.Visible = false
         end
-        Minimized = not Minimized    
+        Minimized = not Minimized
     end)
 
     local function LoadSequence()
@@ -705,21 +722,25 @@ function OnionLib:MakeWindow(WindowConfig)
             TextTransparency = 1
         })
 
-        TweenService:Create(LoadSequenceLogo, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, Position = UDim2.new(0.5, 0, 0.5, 0)}):Play()
+        TweenService:Create(LoadSequenceLogo, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { ImageTransparency = 0, Position = UDim2.new(0.5, 0, 0.5, 0) }):Play()
         wait(0.8)
-        TweenService:Create(LoadSequenceLogo, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -(LoadSequenceText.TextBounds.X/2), 0.5, 0)}):Play()
+        TweenService:Create(LoadSequenceLogo, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { Position = UDim2.new(0.5, -(LoadSequenceText.TextBounds.X / 2), 0.5, 0) }):Play()
         wait(0.3)
-        TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+        TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { TextTransparency = 0 }):Play()
         wait(2)
-        TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
+        TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { TextTransparency = 1 }):Play()
         MainWindow.Visible = true
         LoadSequenceLogo:Destroy()
         LoadSequenceText:Destroy()
-    end 
+    end
 
     if WindowConfig.IntroEnabled then
         LoadSequence()
-    end    
+    end
 
     local TabFunction = {}
     function TabFunction:MakeTab(TabConfig)
@@ -750,9 +771,10 @@ function OnionLib:MakeWindow(WindowConfig)
 
         if GetIcon(TabConfig.Icon) ~= nil then
             TabFrame.Ico.Image = GetIcon(TabConfig.Icon)
-        end    
+        end
 
-        local Container = AddThemeObject(SetChildren(SetProps(MakeElement('ScrollFrame', Color3.fromRGB(255, 255, 255), 5), {
+        local Container = AddThemeObject(
+        SetChildren(SetProps(MakeElement('ScrollFrame', Color3.fromRGB(255, 255, 255), 5), {
             Size = UDim2.new(1, -150, 1, -50),
             Position = UDim2.new(0, 150, 0, 50),
             Parent = MainWindow,
@@ -773,31 +795,36 @@ function OnionLib:MakeWindow(WindowConfig)
             TabFrame.Title.TextTransparency = 0
             TabFrame.Title.Font = Enum.Font.GothamBlack
             Container.Visible = true
-        end    
+        end
 
         AddConnection(TabFrame.MouseButton1Click, function()
             for _, Tab in next, TabHolder:GetChildren() do
                 if Tab:IsA('TextButton') then
                     Tab.Title.Font = Enum.Font.GothamSemibold
-                    TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.4}):Play()
-                    TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0.4}):Play()
-                end    
+                    TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { ImageTransparency = 0.4 }):Play()
+                    TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { TextTransparency = 0.4 }):Play()
+                end
             end
             for _, ItemContainer in next, MainWindow:GetChildren() do
                 if ItemContainer.Name == 'ItemContainer' then
                     ItemContainer.Visible = false
-                end    
-            end  
-            TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play()
-            TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+                end
+            end
+            TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                { ImageTransparency = 0 }):Play()
+            TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                { TextTransparency = 0 }):Play()
             TabFrame.Title.Font = Enum.Font.GothamBlack
-            Container.Visible = true   
+            Container.Visible = true
         end)
 
         local function GetElements(ItemParent)
             local ElementFunction = {}
             function ElementFunction:AddLabel(Text)
-                local LabelFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local LabelFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 30),
                     BackgroundTransparency = 0.7,
                     Parent = ItemParent
@@ -815,13 +842,16 @@ function OnionLib:MakeWindow(WindowConfig)
                 function LabelFunction:Set(ToChange)
                     LabelFrame.Content.Text = ToChange
                 end
+
                 return LabelFunction
             end
+
             function ElementFunction:AddParagraph(Text, Content)
                 Text = Text or 'Text'
                 Content = Content or 'Content'
 
-                local ParagraphFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local ParagraphFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 30),
                     BackgroundTransparency = 0.7,
                     Parent = ItemParent
@@ -853,8 +883,10 @@ function OnionLib:MakeWindow(WindowConfig)
                 function ParagraphFunction:Set(ToChange)
                     ParagraphFrame.Content.Text = ToChange
                 end
+
                 return ParagraphFunction
-            end    
+            end
+
             function ElementFunction:AddButton(ButtonConfig)
                 ButtonConfig = ButtonConfig or {}
                 ButtonConfig.Name = ButtonConfig.Name or 'Button'
@@ -867,7 +899,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     Size = UDim2.new(1, 0, 1, 0)
                 })
 
-                local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local ButtonFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 33),
                     Parent = ItemParent
                 }), {
@@ -886,30 +919,45 @@ function OnionLib:MakeWindow(WindowConfig)
                 }), 'Second')
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ButtonFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second}):Play()
+                    TweenService:Create(ButtonFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second }):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ButtonFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                     spawn(function()
                         ButtonConfig.Callback()
                     end)
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(ButtonFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6) }):Play()
                 end)
 
                 function Button:Set(ButtonText)
                     ButtonFrame.Content.Text = ButtonText
-                end    
+                end
 
                 return Button
-            end    
+            end
+
             function ElementFunction:AddToggle(ToggleConfig)
                 ToggleConfig = ToggleConfig or {}
                 ToggleConfig.Name = ToggleConfig.Name or 'Toggle'
@@ -919,7 +967,7 @@ function OnionLib:MakeWindow(WindowConfig)
                 ToggleConfig.Flag = ToggleConfig.Flag or nil
                 ToggleConfig.Save = ToggleConfig.Save or false
 
-                local Toggle = {Value = ToggleConfig.Default, Save = ToggleConfig.Save}
+                local Toggle = { Value = ToggleConfig.Default, Save = ToggleConfig.Save }
 
                 local Click = SetProps(MakeElement('Button'), {
                     Size = UDim2.new(1, 0, 1, 0)
@@ -944,7 +992,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     }),
                 })
 
-                local ToggleFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local ToggleFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 38),
                     Parent = ItemParent
                 }), {
@@ -961,37 +1010,59 @@ function OnionLib:MakeWindow(WindowConfig)
 
                 function Toggle:Set(Value)
                     Toggle.Value = Value
-                    TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OnionLib.Themes.Default.Divider}):Play()
-                    TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OnionLib.Themes.Default.Stroke}):Play()
-                    TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
+                    TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OnionLib.Themes.Default.Divider })
+                        :Play()
+                    TweenService:Create(ToggleBox.Stroke,
+                        TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { Color = Toggle.Value and ToggleConfig.Color or OnionLib.Themes.Default.Stroke }):Play()
+                    TweenService:Create(ToggleBox.Ico,
+                        TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or
+                        UDim2.new(0, 8, 0, 8) }):Play()
                     ToggleConfig.Callback(Toggle.Value)
-                end    
+                end
 
                 Toggle:Set(Toggle.Value)
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ToggleFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second}):Play()
+                    TweenService:Create(ToggleFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second }):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ToggleFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                     SaveCfg(game.GameId)
                     Toggle:Set(not Toggle.Value)
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(ToggleFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6) }):Play()
                 end)
 
                 if ToggleConfig.Flag then
                     OnionLib.Flags[ToggleConfig.Flag] = Toggle
-                end    
+                end
                 return Toggle
-            end  
+            end
+
             function ElementFunction:AddSlider(SliderConfig)
                 SliderConfig = SliderConfig or {}
                 SliderConfig.Name = SliderConfig.Name or 'Slider'
@@ -1005,7 +1076,7 @@ function OnionLib:MakeWindow(WindowConfig)
                 SliderConfig.Flag = SliderConfig.Flag or nil
                 SliderConfig.Save = SliderConfig.Save or false
 
-                local Slider = {Value = SliderConfig.Default, Save = SliderConfig.Save}
+                local Slider = { Value = SliderConfig.Default, Save = SliderConfig.Save }
                 local Dragging = false
 
                 local SliderDrag = SetChildren(SetProps(MakeElement('RoundFrame', SliderConfig.Color, 0, 5), {
@@ -1040,7 +1111,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     SliderDrag
                 })
 
-                local SliderFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
+                local SliderFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
                     Size = UDim2.new(1, 0, 0, 65),
                     Parent = ItemParent
                 }), {
@@ -1055,38 +1127,42 @@ function OnionLib:MakeWindow(WindowConfig)
                 }), 'Second')
 
                 SliderBar.InputBegan:Connect(function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then 
-                        Dragging = true 
-                    end 
+                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        Dragging = true
+                    end
                 end)
-                SliderBar.InputEnded:Connect(function(Input) 
-                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then 
-                        Dragging = false 
-                    end 
+                SliderBar.InputEnded:Connect(function(Input)
+                    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        Dragging = false
+                    end
                 end)
 
                 UserInputService.InputChanged:Connect(function(Input)
-                    if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then 
-                        local SizeScale = math.clamp((Input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
-                        Slider:Set(SliderConfig.Min + ((SliderConfig.Max - SliderConfig.Min) * SizeScale)) 
+                    if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local SizeScale = math.clamp(
+                        (Input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+                        Slider:Set(SliderConfig.Min + ((SliderConfig.Max - SliderConfig.Min) * SizeScale))
                         SaveCfg(game.GameId)
                     end
                 end)
 
                 function Slider:Set(Value)
                     self.Value = math.clamp(Round(Value, SliderConfig.Increment), SliderConfig.Min, SliderConfig.Max)
-                    TweenService:Create(SliderDrag,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = UDim2.fromScale((self.Value - SliderConfig.Min) / (SliderConfig.Max - SliderConfig.Min), 1)}):Play()
+                    TweenService:Create(SliderDrag, TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                        { Size = UDim2.fromScale((self.Value - SliderConfig.Min) / (SliderConfig.Max - SliderConfig.Min),
+                            1) }):Play()
                     SliderBar.Value.Text = tostring(self.Value) .. ' ' .. SliderConfig.ValueName
                     SliderDrag.Value.Text = tostring(self.Value) .. ' ' .. SliderConfig.ValueName
                     SliderConfig.Callback(self.Value)
-                end      
+                end
 
                 Slider:Set(Slider.Value)
-                if SliderConfig.Flag then                
+                if SliderConfig.Flag then
                     OnionLib.Flags[SliderConfig.Flag] = Slider
                 end
                 return Slider
-            end  
+            end
+
             function ElementFunction:AddDropdown(DropdownConfig)
                 DropdownConfig = DropdownConfig or {}
                 DropdownConfig.Name = DropdownConfig.Name or 'Dropdown'
@@ -1096,7 +1172,8 @@ function OnionLib:MakeWindow(WindowConfig)
                 DropdownConfig.Flag = DropdownConfig.Flag or nil
                 DropdownConfig.Save = DropdownConfig.Save or false
 
-                local Dropdown = {Value = DropdownConfig.Default, Options = DropdownConfig.Options, Buttons = {}, Toggled = false, Type = 'Dropdown', Save = DropdownConfig.Save}
+                local Dropdown = { Value = DropdownConfig.Default, Options = DropdownConfig.Options, Buttons = {}, Toggled = false, Type =
+                'Dropdown', Save = DropdownConfig.Save }
                 local MaxElements = 5
 
                 if not table.find(Dropdown.Options, Dropdown.Value) then
@@ -1105,7 +1182,8 @@ function OnionLib:MakeWindow(WindowConfig)
 
                 local DropdownList = MakeElement('List')
 
-                local DropdownContainer = AddThemeObject(SetProps(SetChildren(MakeElement('ScrollFrame', Color3.fromRGB(40, 40, 40), 4), {
+                local DropdownContainer = AddThemeObject(
+                SetProps(SetChildren(MakeElement('ScrollFrame', Color3.fromRGB(40, 40, 40), 4), {
                     DropdownList
                 }), {
                     Parent = ItemParent,
@@ -1118,7 +1196,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     Size = UDim2.new(1, 0, 1, 0)
                 })
 
-                local DropdownFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local DropdownFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 38),
                     Parent = ItemParent,
                     ClipsDescendants = true
@@ -1149,7 +1228,7 @@ function OnionLib:MakeWindow(WindowConfig)
                             Position = UDim2.new(0, 0, 1, -1),
                             Name = 'Line',
                             Visible = false
-                        }), 'Stroke'), 
+                        }), 'Stroke'),
                         Click
                     }), {
                         Size = UDim2.new(1, 0, 0, 38),
@@ -1162,11 +1241,12 @@ function OnionLib:MakeWindow(WindowConfig)
 
                 AddConnection(DropdownList:GetPropertyChangedSignal('AbsoluteContentSize'), function()
                     DropdownContainer.CanvasSize = UDim2.new(0, 0, 0, DropdownList.AbsoluteContentSize.Y)
-                end)  
+                end)
 
                 local function AddOptions(Options)
                     for _, Option in pairs(Options) do
-                        local OptionBtn = AddThemeObject(SetProps(SetChildren(MakeElement('Button', Color3.fromRGB(40, 40, 40)), {
+                        local OptionBtn = AddThemeObject(
+                        SetProps(SetChildren(MakeElement('Button', Color3.fromRGB(40, 40, 40)), {
                             MakeElement('Corner', 0, 6),
                             AddThemeObject(SetProps(MakeElement('Label', Option, 13, 0.4), {
                                 Position = UDim2.new(0, 8, 0, 0),
@@ -1187,28 +1267,31 @@ function OnionLib:MakeWindow(WindowConfig)
 
                         Dropdown.Buttons[Option] = OptionBtn
                     end
-                end    
+                end
 
                 function Dropdown:Refresh(Options, Delete)
                     if Delete then
-                        for _,v in pairs(Dropdown.Buttons) do
+                        for _, v in pairs(Dropdown.Buttons) do
                             v:Destroy()
-                        end    
+                        end
                         table.clear(Dropdown.Options)
                         table.clear(Dropdown.Buttons)
                     end
                     Dropdown.Options = Options
                     AddOptions(Dropdown.Options)
-                end  
+                end
 
                 function Dropdown:Set(Value)
                     if not table.find(Dropdown.Options, Value) then
                         Dropdown.Value = '...'
                         DropdownFrame.F.Selected.Text = Dropdown.Value
                         for _, v in pairs(Dropdown.Buttons) do
-                            TweenService:Create(v,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{BackgroundTransparency = 1}):Play()
-                            TweenService:Create(v.Title,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{TextTransparency = 0.4}):Play()
-                        end    
+                            TweenService:Create(v, TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                                { BackgroundTransparency = 1 }):Play()
+                            TweenService:Create(v.Title,
+                                TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                                { TextTransparency = 0.4 }):Play()
+                        end
                         return
                     end
 
@@ -1216,32 +1299,47 @@ function OnionLib:MakeWindow(WindowConfig)
                     DropdownFrame.F.Selected.Text = Dropdown.Value
 
                     for _, v in pairs(Dropdown.Buttons) do
-                        TweenService:Create(v,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{BackgroundTransparency = 1}):Play()
-                        TweenService:Create(v.Title,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{TextTransparency = 0.4}):Play()
-                    end    
-                    TweenService:Create(Dropdown.Buttons[Value],TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{BackgroundTransparency = 0}):Play()
-                    TweenService:Create(Dropdown.Buttons[Value].Title,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{TextTransparency = 0}):Play()
+                        TweenService:Create(v, TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                            { BackgroundTransparency = 1 }):Play()
+                        TweenService:Create(v.Title, TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                            { TextTransparency = 0.4 }):Play()
+                    end
+                    TweenService:Create(Dropdown.Buttons[Value],
+                        TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 })
+                        :Play()
+                    TweenService:Create(Dropdown.Buttons[Value].Title,
+                        TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { TextTransparency = 0 })
+                        :Play()
                     return DropdownConfig.Callback(Dropdown.Value)
                 end
 
                 AddConnection(Click.MouseButton1Click, function()
                     Dropdown.Toggled = not Dropdown.Toggled
                     DropdownFrame.F.Line.Visible = Dropdown.Toggled
-                    TweenService:Create(DropdownFrame.F.Ico,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Rotation = Dropdown.Toggled and 180 or 0}):Play()
+                    TweenService:Create(DropdownFrame.F.Ico,
+                        TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                        { Rotation = Dropdown.Toggled and 180 or 0 }):Play()
                     if #Dropdown.Options > MaxElements then
-                        TweenService:Create(DropdownFrame,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = Dropdown.Toggled and UDim2.new(1, 0, 0, 38 + (MaxElements * 28)) or UDim2.new(1, 0, 0, 38)}):Play()
+                        TweenService:Create(DropdownFrame,
+                            TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                            { Size = Dropdown.Toggled and UDim2.new(1, 0, 0, 38 + (MaxElements * 28)) or
+                            UDim2.new(1, 0, 0, 38) }):Play()
                     else
-                        TweenService:Create(DropdownFrame,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = Dropdown.Toggled and UDim2.new(1, 0, 0, DropdownList.AbsoluteContentSize.Y + 38) or UDim2.new(1, 0, 0, 38)}):Play()
+                        TweenService:Create(DropdownFrame,
+                            TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                            { Size = Dropdown.Toggled and UDim2.new(1, 0, 0, DropdownList.AbsoluteContentSize.Y + 38) or
+                            UDim2.new(1, 0, 0, 38) }):Play()
                     end
                 end)
 
                 Dropdown:Refresh(Dropdown.Options, false)
                 Dropdown:Set(Dropdown.Value)
-                if DropdownConfig.Flag then                
+                if DropdownConfig.Flag then
                     OnionLib.Flags[DropdownConfig.Flag] = Dropdown
                 end
                 return Dropdown
             end
+
             function ElementFunction:AddBind(BindConfig)
                 BindConfig.Name = BindConfig.Name or 'Bind'
                 BindConfig.Default = BindConfig.Default or Enum.KeyCode.Unknown
@@ -1250,14 +1348,15 @@ function OnionLib:MakeWindow(WindowConfig)
                 BindConfig.Flag = BindConfig.Flag or nil
                 BindConfig.Save = BindConfig.Save or false
 
-                local Bind = {Value, Binding = false, Type = 'Bind', Save = BindConfig.Save}
+                local Bind = { Value, Binding = false, Type = 'Bind', Save = BindConfig.Save }
                 local Holding = false
 
                 local Click = SetProps(MakeElement('Button'), {
                     Size = UDim2.new(1, 0, 1, 0)
                 })
 
-                local BindBox = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
+                local BindBox = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
                     Size = UDim2.new(0, 24, 0, 24),
                     Position = UDim2.new(1, -12, 0.5, 0),
                     AnchorPoint = Vector2.new(1, 0.5)
@@ -1271,7 +1370,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     }), 'Text')
                 }), 'Main')
 
-                local BindFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local BindFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 38),
                     Parent = ItemParent
                 }), {
@@ -1288,7 +1388,8 @@ function OnionLib:MakeWindow(WindowConfig)
 
                 AddConnection(BindBox.Value:GetPropertyChangedSignal('Text'), function()
                     --BindBox.Size = UDim2.new(0, BindBox.Value.TextBounds.X + 16, 0, 24)
-                    TweenService:Create(BindBox, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, BindBox.Value.TextBounds.X + 16, 0, 24)}):Play()
+                    TweenService:Create(BindBox, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { Size = UDim2.new(0, BindBox.Value.TextBounds.X + 16, 0, 24) }):Play()
                 end)
 
                 AddConnection(Click.InputEnded, function(Input)
@@ -1336,19 +1437,29 @@ function OnionLib:MakeWindow(WindowConfig)
                 end)
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second }):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6) }):Play()
                 end)
 
                 function Bind:Set(Key)
@@ -1359,11 +1470,12 @@ function OnionLib:MakeWindow(WindowConfig)
                 end
 
                 Bind:Set(BindConfig.Default)
-                if BindConfig.Flag then                
+                if BindConfig.Flag then
                     OnionLib.Flags[BindConfig.Flag] = Bind
                 end
                 return Bind
-            end  
+            end
+
             function ElementFunction:AddTextbox(TextboxConfig)
                 TextboxConfig = TextboxConfig or {}
                 TextboxConfig.Name = TextboxConfig.Name or 'Textbox'
@@ -1379,7 +1491,7 @@ function OnionLib:MakeWindow(WindowConfig)
                     Size = UDim2.new(1, 0, 1, 0),
                     BackgroundTransparency = 1,
                     TextColor3 = Color3.fromRGB(255, 255, 255),
-                    PlaceholderColor3 = Color3.fromRGB(210,210,210),
+                    PlaceholderColor3 = Color3.fromRGB(210, 210, 210),
                     PlaceholderText = 'Input',
                     Font = Enum.Font.GothamSemibold,
                     TextXAlignment = Enum.TextXAlignment.Center,
@@ -1387,7 +1499,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     ClearTextOnFocus = false
                 }), 'Text')
 
-                local TextContainer = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
+                local TextContainer = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
                     Size = UDim2.new(0, 24, 0, 24),
                     Position = UDim2.new(1, -12, 0.5, 0),
                     AnchorPoint = Vector2.new(1, 0.5)
@@ -1397,7 +1510,8 @@ function OnionLib:MakeWindow(WindowConfig)
                 }), 'Main')
 
 
-                local TextboxFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local TextboxFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 38),
                     Parent = ItemParent
                 }), {
@@ -1414,45 +1528,63 @@ function OnionLib:MakeWindow(WindowConfig)
 
                 AddConnection(TextboxActual:GetPropertyChangedSignal('Text'), function()
                     --TextContainer.Size = UDim2.new(0, TextboxActual.TextBounds.X + 16, 0, 24)
-                    TweenService:Create(TextContainer, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, TextboxActual.TextBounds.X + 16, 0, 24)}):Play()
+                    TweenService:Create(TextContainer,
+                        TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { Size = UDim2.new(0, TextboxActual.TextBounds.X + 16, 0, 24) }):Play()
                 end)
 
                 AddConnection(TextboxActual.FocusLost, function()
                     TextboxConfig.Callback(TextboxActual.Text)
                     if TextboxConfig.TextDisappear then
                         TextboxActual.Text = ''
-                    end    
+                    end
                 end)
 
                 TextboxActual.Text = TextboxConfig.Default
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(TextboxFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second}):Play()
+                    TweenService:Create(TextboxFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = OnionLib.Themes[OnionLib.SelectedTheme].Second }):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(TextboxFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 3,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 3) }):Play()
                     TextboxActual:CaptureFocus()
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6, OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(TextboxFrame,
+                        TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                        { BackgroundColor3 = Color3.fromRGB(OnionLib.Themes[OnionLib.SelectedTheme].Second.R * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.G * 255 + 6,
+                            OnionLib.Themes[OnionLib.SelectedTheme].Second.B * 255 + 6) }):Play()
                 end)
-            end 
+            end
+
             function ElementFunction:AddColorpicker(ColorpickerConfig)
                 ColorpickerConfig = ColorpickerConfig or {}
                 ColorpickerConfig.Name = ColorpickerConfig.Name or 'Colorpicker'
-                ColorpickerConfig.Default = ColorpickerConfig.Default or Color3.fromRGB(255,255,255)
+                ColorpickerConfig.Default = ColorpickerConfig.Default or Color3.fromRGB(255, 255, 255)
                 ColorpickerConfig.Callback = ColorpickerConfig.Callback or function() end
                 ColorpickerConfig.Flag = ColorpickerConfig.Flag or nil
                 ColorpickerConfig.Save = ColorpickerConfig.Save or false
 
                 local ColorH, ColorS, ColorV = 1, 1, 1
-                local Colorpicker = {Value = ColorpickerConfig.Default, Toggled = false, Type = 'Colorpicker', Save = ColorpickerConfig.Save}
+                local Colorpicker = { Value = ColorpickerConfig.Default, Toggled = false, Type = 'Colorpicker', Save =
+                ColorpickerConfig.Save }
 
                 local ColorSelection = Create('ImageLabel', {
                     Size = UDim2.new(0, 18, 0, 18),
@@ -1477,7 +1609,7 @@ function OnionLib:MakeWindow(WindowConfig)
                     Visible = false,
                     Image = 'rbxassetid://4155801252'
                 }, {
-                    Create('UICorner', {CornerRadius = UDim.new(0, 5)}),
+                    Create('UICorner', { CornerRadius = UDim.new(0, 5) }),
                     ColorSelection
                 })
 
@@ -1486,8 +1618,9 @@ function OnionLib:MakeWindow(WindowConfig)
                     Position = UDim2.new(1, -20, 0, 0),
                     Visible = false
                 }, {
-                    Create('UIGradient', {Rotation = 270, Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 4)), ColorSequenceKeypoint.new(0.20, Color3.fromRGB(234, 255, 0)), ColorSequenceKeypoint.new(0.40, Color3.fromRGB(21, 255, 0)), ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.80, Color3.fromRGB(0, 17, 255)), ColorSequenceKeypoint.new(0.90, Color3.fromRGB(255, 0, 251)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 4))},}),
-                    Create('UICorner', {CornerRadius = UDim.new(0, 5)}),
+                    Create('UIGradient',
+                        { Rotation = 270, Color = ColorSequence.new { ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 4)), ColorSequenceKeypoint.new(0.20, Color3.fromRGB(234, 255, 0)), ColorSequenceKeypoint.new(0.40, Color3.fromRGB(21, 255, 0)), ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.80, Color3.fromRGB(0, 17, 255)), ColorSequenceKeypoint.new(0.90, Color3.fromRGB(255, 0, 251)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 4)) }, }),
+                    Create('UICorner', { CornerRadius = UDim.new(0, 5) }),
                     HueSelection
                 })
 
@@ -1511,7 +1644,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     Size = UDim2.new(1, 0, 1, 0)
                 })
 
-                local ColorpickerBox = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
+                local ColorpickerBox = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 4), {
                     Size = UDim2.new(0, 24, 0, 24),
                     Position = UDim2.new(1, -12, 0.5, 0),
                     AnchorPoint = Vector2.new(1, 0.5)
@@ -1519,7 +1653,8 @@ function OnionLib:MakeWindow(WindowConfig)
                     AddThemeObject(MakeElement('Stroke'), 'Stroke')
                 }), 'Main')
 
-                local ColorpickerFrame = AddThemeObject(SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
+                local ColorpickerFrame = AddThemeObject(
+                SetChildren(SetProps(MakeElement('RoundFrame', Color3.fromRGB(255, 255, 255), 0, 5), {
                     Size = UDim2.new(1, 0, 0, 38),
                     Parent = ItemParent
                 }), {
@@ -1537,7 +1672,7 @@ function OnionLib:MakeWindow(WindowConfig)
                             Position = UDim2.new(0, 0, 1, -1),
                             Name = 'Line',
                             Visible = false
-                        }), 'Stroke'), 
+                        }), 'Stroke'),
                     }), {
                         Size = UDim2.new(1, 0, 0, 38),
                         ClipsDescendants = true,
@@ -1549,7 +1684,9 @@ function OnionLib:MakeWindow(WindowConfig)
 
                 AddConnection(Click.MouseButton1Click, function()
                     Colorpicker.Toggled = not Colorpicker.Toggled
-                    TweenService:Create(ColorpickerFrame,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = Colorpicker.Toggled and UDim2.new(1, 0, 0, 148) or UDim2.new(1, 0, 0, 38)}):Play()
+                    TweenService:Create(ColorpickerFrame,
+                        TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                        { Size = Colorpicker.Toggled and UDim2.new(1, 0, 0, 148) or UDim2.new(1, 0, 0, 38) }):Play()
                     Color.Visible = Colorpicker.Toggled
                     Hue.Visible = Colorpicker.Toggled
                     ColorpickerFrame.F.Line.Visible = Colorpicker.Toggled
@@ -1563,9 +1700,11 @@ function OnionLib:MakeWindow(WindowConfig)
                     SaveCfg(game.GameId)
                 end
 
-                ColorH = 1 - (math.clamp(HueSelection.AbsolutePosition.Y - Hue.AbsolutePosition.Y, 0, Hue.AbsoluteSize.Y) / Hue.AbsoluteSize.Y)
+                ColorH = 1 -
+                (math.clamp(HueSelection.AbsolutePosition.Y - Hue.AbsolutePosition.Y, 0, Hue.AbsoluteSize.Y) / Hue.AbsoluteSize.Y)
                 ColorS = (math.clamp(ColorSelection.AbsolutePosition.X - Color.AbsolutePosition.X, 0, Color.AbsoluteSize.X) / Color.AbsoluteSize.X)
-                ColorV = 1 - (math.clamp(ColorSelection.AbsolutePosition.Y - Color.AbsolutePosition.Y, 0, Color.AbsoluteSize.Y) / Color.AbsoluteSize.Y)
+                ColorV = 1 -
+                (math.clamp(ColorSelection.AbsolutePosition.Y - Color.AbsolutePosition.Y, 0, Color.AbsoluteSize.Y) / Color.AbsoluteSize.Y)
 
                 AddConnection(Color.InputBegan, function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1623,13 +1762,14 @@ function OnionLib:MakeWindow(WindowConfig)
                 end
 
                 Colorpicker:Set(Colorpicker.Value)
-                if ColorpickerConfig.Flag then                
+                if ColorpickerConfig.Flag then
                     OnionLib.Flags[ColorpickerConfig.Flag] = Colorpicker
                 end
                 return Colorpicker
-            end  
-            return ElementFunction   
-        end    
+            end
+
+            return ElementFunction
+        end
 
         local ElementFunction = {}
 
@@ -1662,19 +1802,19 @@ function OnionLib:MakeWindow(WindowConfig)
 
             local SectionFunction = {}
             for i, v in next, GetElements(SectionFrame.Holder) do
-                SectionFunction[i] = v 
+                SectionFunction[i] = v
             end
             return SectionFunction
-        end    
+        end
 
         for i, v in next, GetElements(Container) do
-            ElementFunction[i] = v 
+            ElementFunction[i] = v
         end
 
         if TabConfig.PremiumOnly then
             for i, v in next, ElementFunction do
                 ElementFunction[i] = function() end
-            end    
+            end
             Container:FindFirstChild('UIListLayout'):Destroy()
             Container:FindFirstChild('UIPadding'):Destroy()
             SetChildren(SetProps(MakeElement('TFrame'), {
@@ -1700,7 +1840,11 @@ function OnionLib:MakeWindow(WindowConfig)
                     Position = UDim2.new(0, 150, 0, 112),
                     Font = Enum.Font.GothamBold
                 }), 'Text'),
-                AddThemeObject(SetProps(MakeElement('Label', 'This part of the script is locked to Sirius Premium users. Purchase Premium in the Discord server (discord.gg/sirius)', 12), {
+                AddThemeObject(
+                SetProps(
+                MakeElement('Label',
+                    'This part of the script is locked to Sirius Premium users. Purchase Premium in the Discord server (discord.gg/sirius)',
+                    12), {
                     Size = UDim2.new(1, -200, 0, 14),
                     Position = UDim2.new(0, 150, 0, 138),
                     TextWrapped = true,
@@ -1708,56 +1852,56 @@ function OnionLib:MakeWindow(WindowConfig)
                 }), 'Text')
             })
         end
-        return ElementFunction   
-    end  
-    
+        return ElementFunction
+    end
+
     --if writefile and isfile then
-    --    if not isfile('NewLibraryNotification1.txt') then
-    --        local http_req = (syn and syn.request) or (http and http.request) or http_request
-    --        if http_req then
-    --            http_req({
-    --                Url = 'http://127.0.0.1:6463/rpc?v=1',
-    --                Method = 'POST',
-    --                Headers = {
-    --                    ['Content-Type'] = 'application/json',
-    --                    Origin = 'https://discord.com'
-    --                },
-    --                Body = HttpService:JSONEncode({
-    --                    cmd = 'INVITE_BROWSER',
-    --                    nonce = HttpService:GenerateGUID(false),
-    --                    args = {code = 'sirius'}
-    --                })
-    --            })
-    --        end
-    --        OnionLib:MakeNotification({
-    --            Name = 'UI Library Available',
-    --            Content = 'New UI Library Available - Joining Discord (#announcements)',
-    --            Time = 8
-    --        })
-    --        spawn(function()
-    --            local UI = game:GetObjects('rbxassetid://11403719739')[1]
+    -- if not isfile('NewLibraryNotification1.txt') then
+    -- local http_req = (syn and syn.request) or (http and http.request) or http_request
+    -- if http_req then
+    -- http_req({
+    -- Url = 'http://127.0.0.1:6463/rpc?v=1',
+    -- Method = 'POST',
+    -- Headers = {
+    -- ['Content-Type'] = 'application/json',
+    -- Origin = 'https://discord.com'
+    -- },
+    -- Body = HttpService:JSONEncode({
+    -- cmd = 'INVITE_BROWSER',
+    -- nonce = HttpService:GenerateGUID(false),
+    -- args = {code = 'sirius'}
+    -- })
+    -- })
+    -- end
+    -- OnionLib:MakeNotification({
+    -- Name = 'UI Library Available',
+    -- Content = 'New UI Library Available - Joining Discord (#announcements)',
+    -- Time = 8
+    -- })
+    -- spawn(function()
+    -- local UI = game:GetObjects('rbxassetid://11403719739')[1]
 
-    --            if gethui then
-    --                UI.Parent = gethui()
-    --            elseif syn.protect_gui then
-    --                syn.protect_gui(UI)
-    --                UI.Parent = game.CoreGui
-    --            else
-    --                UI.Parent = game.CoreGui
-    --            end
+    -- if gethui then
+    -- UI.Parent = gethui()
+    -- elseif syn.protect_gui then
+    -- syn.protect_gui(UI)
+    -- UI.Parent = game.CoreGui
+    -- else
+    -- UI.Parent = game.CoreGui
+    -- end
 
-    --            wait(11)
+    -- wait(11)
 
-    --            UI:Destroy()
-    --        end)
-    --        writefile('NewLibraryNotification1.txt','The value for the notification having been sent to you.')
-    --    end
+    -- UI:Destroy()
+    -- end)
+    -- writefile('NewLibraryNotification1.txt','The value for the notification having been sent to you.')
+    -- end
     --end
-    
 
-    
+
+
     return TabFunction
-end   
+end
 
 function OnionLib:Destroy()
     Onion:Destroy()
